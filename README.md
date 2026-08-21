@@ -33,6 +33,7 @@ python scripts/shap_interpretation.py    # 튜닝된 XGBoost SHAP 해석
 python scripts/classify_conflicting.py   # CLASS(상충 여부) 분류로 확장
 python scripts/ablation_sift_polyphen.py # SIFT/PolyPhen 제외 ablation 실험
 python scripts/statistical_tests.py      # CLASS/IMPACT/Consequence 그룹 간 통계적 가설검정
+python scripts/threshold_analysis.py     # 분류 임계값 조정 Precision-Recall 트레이드오프
 ```
 파이프라인 세부 단계와 공통 규칙은 [`docs/workflow.md`](docs/workflow.md) 참고.
 
@@ -52,6 +53,8 @@ python scripts/statistical_tests.py      # CLASS/IMPACT/Consequence 그룹 간 �
 **분류 확장 (`CLASS`, 상충 여부)**: XGBoost 기준 ROC-AUC 0.791, F1 0.564 — 회귀보다 어려운 문제. 잘 알려진 질병 유전자(BRCA1/2, LDLR, MSH6 등)일수록 검사기관 간 해석 상충 가능성이 높게 나타남. (`outputs/classification/`)
 
 **통계적 가설검정**: `IMPACT`·`Consequence`는 `CADD_PHRED`에 크고 실질적인 영향(eta²≈0.38, Kruskal-Wallis p≈0)을 주는 반면, `CLASS`는 통계적으로만 유의할 뿐 실질적 영향은 거의 없음(Cohen's d=-0.087) — 지금까지의 모델링 결과를 통계적으로 뒷받침. (`outputs/stats/`)
+
+**임계값 조정 (Precision-Recall)**: 기본 임계값(0.5)이 이미 F1 최적점에 가까움(AP=0.533). Precision을 0.70까지 올리려면 Recall이 0.088로 붕괴 — 임계값 튜닝으로는 해결되지 않는 특성 신호 자체의 한계. (`outputs/threshold_analysis/`)
 
 전체 결과와 해석은 [`docs/analysis_report.md`](docs/analysis_report.md) 참고.
 

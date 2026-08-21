@@ -133,6 +133,25 @@
 - LogisticRegression은 `class_weight="balanced"`로 인해 Recall(0.854)은 높지만 Precision(0.348)이 낮아 상충을 과도하게 예측하는 경향. 트리 모델(RF/XGB)이 Precision·Recall 균형이 더 좋음.
 - XGBoost feature importance 상위권: `IMPACT_HIGH`, 대립유전자 빈도(`log_AF_TGP`, `log_AF_EXAC`), 특정 유전자(`LDLR`, `RAD50`, `APC`, `MYBPC3`, `MSH6`, `BRCA1`, `BRCA2`, `NF1`) — 잘 알려진 질병 유전자일수록 여러 검사기관이 제출·검토하는 빈도가 높아 해석 상충 가능성도 높아지는 것으로 해석됨 (`outputs/classification/feature_importance_XGBoost.png`).
 
+### 8-1. 임계값(threshold) 조정 — Precision-Recall 트레이드오프
+`scripts/threshold_analysis.py` 실행 결과 (`outputs/threshold_analysis/`) — XGBoost 분류기의 판정 임계값을 조정했을 때 Precision·Recall이 어떻게 변하는지 분석. Average Precision(AP) = 0.533 (양성 비율 0.252 대비 2배 이상 — 어느 정도 판별력 있음).
+
+| 시나리오 | 임계값 | Precision | Recall | F1 |
+|---|---|---|---|---|
+| 기본 (0.5) | 0.500 | 0.461 | 0.724 | 0.564 |
+| F1 최대화 | 0.495 | 0.460 | 0.737 | **0.566** |
+| 고재현율 (Recall≥0.9) | 0.344 | 0.375 | 0.900 | 0.529 |
+| 고정밀 (Precision≥0.7) | 0.810 | 0.700 | 0.088 | 0.157 |
+
+![Precision-Recall Curve](../outputs/threshold_analysis/precision_recall_curve.png)
+![임계값 트레이드오프](../outputs/threshold_analysis/threshold_tradeoff.png)
+
+**해석**:
+- 기본 임계값(0.5)이 이미 F1 최적점에 매우 가깝다 — 조정해도 F1은 0.564→0.566으로 거의 개선되지 않아, 임계값 튜닝 자체로 얻는 이득은 크지 않다. 대신 Precision과 Recall 중 어느 쪽을 우선할지 고르는 용도로 의미가 있다.
+- **고정밀 시나리오의 실용성이 낮다**: Precision을 0.70까지 올리려면 임계값을 0.81까지 높여야 하는데, 그러면 Recall이 0.088로 붕괴 — 실제 상충 변이의 91%를 놓친다. 모델이 "확실히 상충"이라고 자신 있게 말할 수 있는 고신뢰 구간이 거의 없다는 뜻이다.
+- 고재현율 시나리오(Recall 0.9, Precision 0.375)는 "상충 가능 변이를 놓치지 않는" 스크리닝 목적에는 상대적으로 현실적인 선택지다.
+- 종합하면 `CLASS` 분류는 임계값 조정으로 해결되는 문제가 아니라 특성 자체가 담고 있는 신호의 한계에 가깝다 — 9장 가설검정에서 확인한 CLASS의 약한 효과크기(Cohen's d=-0.087, CADD_PHRED 기준)와 같은 맥락이다.
+
 ## 9. 통계적 가설검정
 `scripts/statistical_tests.py` 실행 결과 (`outputs/stats/`) — 표본이 커서(n≈6만) p-value만으로는 "통계적 유의"와 "실질적 의미"를 구분하기 어려우므로 효과크기(Cohen's d, eta-squared)를 함께 계산.
 
@@ -159,5 +178,6 @@
 - 피처 엔지니어링(로그변환, 위치 정보 수치화)이 하이퍼파라미터 튜닝보다 더 큰 성능 개선을 가져왔다 — 향후 유사 작업에서는 튜닝보다 도메인 지식 기반 피처 엔지니어링을 우선하는 것이 효율적일 수 있다.
 - SHAP 해석 결과 모델은 SIFT·PolyPhen에 크게 의존하며, ablation 실험으로 검증한 결과 이 둘을 제외하면 R²가 0.708→0.598(15.5%↓)로 크게 하락 — 두 변수가 단순 중복 정보가 아니라 다른 특성이 포착하지 못하는 독립적인 예측력을 갖고 있음을 확인했다.
 - `CLASS`(상충 여부) 분류로 확장한 결과 ROC-AUC 0.791로 회귀보다는 어려운 문제였으며, 특정 질병 유전자(BRCA1/2 등)가 상충 예측에 중요하다는 것을 확인했다.
+- 분류 임계값 조정 결과, 기본 임계값(0.5)이 이미 F1 최적점에 가까웠고 고정밀(Precision≥0.7) 시나리오는 Recall이 0.088까지 붕괴 — 임계값 튜닝으로 해결되지 않는, 특성 신호 자체의 한계로 확인됐다.
 - 통계적 가설검정으로 `IMPACT`/`Consequence`의 큰 효과크기(eta²≈0.38)와 `CLASS`의 무시할 만한 효과크기(d=-0.087)를 확인해, 앞선 모델링 결과를 통계적으로 뒷받침했다.
-- 추후 확장 가능한 분석 방향: 분류 모델의 임계값(threshold) 조정을 통한 Precision-Recall 트레이드오프 분석, 유전자 단위 계층적(mixed-effects) 모델링.
+- 추후 확장 가능한 분석 방향: 유전자 단위 계층적(mixed-effects) 모델링, 검사기관 수·질병 카테고리 등 `CLASS` 예측에 특화된 추가 특성 발굴.

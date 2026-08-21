@@ -22,6 +22,7 @@ scripts/  분석 파이프라인 스크립트
 | 6 | `scripts/classify_conflicting.py` | `data/clinvar_conflicting.csv` | `outputs/classification/*` | `CLASS`(상충 여부) 분류로 확장 — LR/RF/XGB, Accuracy·Precision·Recall·F1·ROC-AUC |
 | 7 | `scripts/ablation_sift_polyphen.py` | `data/clinvar_conflicting.csv` | `outputs/ablation/*` | SIFT/PolyPhen 제외 시 튜닝된 XGBoost 성능 변화 검증 |
 | 8 | `scripts/statistical_tests.py` | `data/clinvar_conflicting.csv` | `outputs/stats/*` | CLASS/IMPACT/Consequence 그룹 간 CADD_PHRED 차이 가설검정 (t-test, Mann-Whitney, Kruskal-Wallis, 효과크기) |
+| 9 | `scripts/threshold_analysis.py` | `data/clinvar_conflicting.csv` | `outputs/threshold_analysis/*` | XGBoost 분류기 임계값별 Precision-Recall 트레이드오프 분석 |
 
 문서 산출물: `docs/Problem-definition.md`(문제 정의·기준선), `docs/analysis_report.md`(종합 리포트), `docs/work_log.md`(작업 이력)
 

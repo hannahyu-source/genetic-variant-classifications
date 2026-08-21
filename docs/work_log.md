@@ -102,6 +102,12 @@
 - 결과: IMPACT(eta²=0.381)·Consequence(eta²=0.379)는 큰 효과, CLASS는 통계적으로 유의하나 효과크기 무시할 수준(Cohen's d=-0.087) — 표본 크기(n≈6만)로 인한 "통계적 유의 vs 실질적 의미" 괴리를 확인
 - `docs/analysis_report.md`(9장 신설, 결론 갱신), `README.md`, `docs/workflow.md`에 반영
 
+### 18. 분류 임계값(threshold) 조정 — Precision-Recall 트레이드오프
+- `scripts/threshold_analysis.py` 작성·실행: `classify_conflicting.py`의 XGBoost 분류기를 재학습해 `precision_recall_curve`로 임계값별 Precision/Recall/F1 계산
+- 4개 시나리오 비교: 기본(0.5), F1 최대화(0.495), 고재현율(Recall≥0.9 → threshold=0.344), 고정밀(Precision≥0.7 → threshold=0.810)
+- 결과: 기본 임계값이 이미 F1 최적점에 근접(AP=0.533), 고정밀 시나리오는 Recall이 0.088까지 붕괴 — 임계값 조정으로 해결 안 되는 특성 신호의 한계로 결론
+- `docs/analysis_report.md`(8-1절 신설, 결론 갱신), `README.md`, `docs/workflow.md`에 반영
+
 ## 진행 중 / 다음에 할 일
-- [ ] 통계적 가설검정 결과 커밋 및 GitHub 푸시
-- [ ] (선택) 분류 임계값 조정을 통한 Precision-Recall 트레이드오프 분석, 유전자 단위 계층적 모델링
+- [ ] 임계값 분석 결과 커밋 및 GitHub 푸시
+- [ ] (선택) 유전자 단위 계층적(mixed-effects) 모델링, CLASS 예측에 특화된 추가 특성(검사기관 수, 질병 카테고리 등) 발굴
