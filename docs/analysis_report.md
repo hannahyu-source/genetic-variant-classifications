@@ -178,23 +178,28 @@
 
 > 첫 실행 시 PCA/t-SNE는 스케일링을 적용하지 않아(트리 모델용 preprocessor 재사용) 위치 정보 등 스케일이 큰 변수가 지배해 설명분산이 100%로 무의미하게 나왔고, 2D PDP는 `BLOSUM62`(결측 60%)의 NaN이 섞인 채로 sklearn이 `np.percentile`을 사용해 그리드 범위가 깨졌다. PCA/t-SNE 전용 `StandardScaler` preprocessor를 별도 적용하고 PDP 입력의 결측을 중앙값으로 채워 재실행해 바로잡았다.
 
-**10-1. 회귀 잔차 플롯** (`01_residual_plot.png`)
+**10-1. 회귀 잔차 플롯**
+![잔차 플롯](../outputs/advanced_viz/01_residual_plot.png)
 - 대체로 y=x를 잘 따르나, 실제 CADD_PHRED가 40 이상인 고유해성 변이에서 모델이 체계적으로 과소예측하는 꼬리 압축(tail compression) 경향이 있다.
 - 실제값 23~36 구간에 세로로 밀집된 띠가 있고 이 구간에서 예측값이 0~40까지 크게 흩어진다 — 특정 Consequence/IMPACT 조합이 겹쳐 나타나는 것으로 보이며, 후속 분석에서 원인 특정이 필요하다.
 
-**10-2. PCA / t-SNE 2D 임베딩** (`02_pca_tsne_embedding.png`)
+**10-2. PCA / t-SNE 2D 임베딩**
+![PCA t-SNE 임베딩](../outputs/advanced_viz/02_pca_tsne_embedding.png)
 - t-SNE에서 `IMPACT` 등급별로 뚜렷한 군집이 형성된다(LOW/MODERATE가 서로 다른 영역을 차지).
 - `CLASS`(상충 여부)는 모든 군집에 고르게 섞여 있어 특성 공간에서 구분되는 영역이 없다 — 9장 가설검정(d=-0.087)과 SHAP 결과를 시각적으로 재확인.
 
-**10-3. 분류기 보정 곡선** (`03_calibration_curve.png`)
+**10-3. 분류기 보정 곡선**
+![보정 곡선](../outputs/advanced_viz/03_calibration_curve.png)
 - XGBoost 분류기의 예측 확률이 전반적으로 과대평가(overconfident)되어 있다 — 보정 곡선이 대각선 아래에 위치해, 예측 확률 0.8 구간에서 실제 관측 비율은 약 0.61에 그친다.
 - `scale_pos_weight`로 클래스 불균형을 보정하면서 생긴 부작용으로 추정된다. 확률값 자체의 신뢰도가 필요한 용도(예: 위험도 커뮤니케이션)라면 Platt scaling 등 별도 보정이 필요하다.
 
-**10-4. 유전자 x IMPACT 히트맵** (`04_gene_impact_heatmap.png`)
+**10-4. 유전자 x IMPACT 히트맵**
+![유전자 IMPACT 히트맵](../outputs/advanced_viz/04_gene_impact_heatmap.png)
 - 상위 12개 유전자(TTN, BRCA2, ATM, APC, BRCA1, MSH6, LDLR, PALB2, NF1, TSC2, BRIP1, PMS2 — 대부분 암/심장질환 관련 주요 질병 유전자) 기준, HIGH 등급에서는 거의 모든 유전자의 상충 비율이 낮지만(0~0.14) LOW/MODIFIER 등급에서는 급증한다(LDLR LOW=0.63, BRCA2 MODIFIER=0.64, BRCA1 MODIFIER=0.52).
 - "명백히 위험한 변이"는 검사기관들이 대체로 동의하지만, "애매한 변이"에서 해석이 크게 갈린다는 것을 유전자 단위로 재확인 — 8장 분류 결과의 구체적 근거가 된다.
 
-**10-5. 2D Partial Dependence: BLOSUM62 x log_AF_TGP** (`05_pdp_interaction.png`)
+**10-5. 2D Partial Dependence: BLOSUM62 x log_AF_TGP**
+![2D PDP](../outputs/advanced_viz/05_pdp_interaction.png)
 - 예측 CADD_PHRED는 BLOSUM62가 낮을수록(아미노산 치환이 급격할수록) 높다(~16.7 → ~12.7). 대립유전자 빈도가 낮을 때 이 효과가 더 뚜렷하게 나타나 두 변수 간 상호작용이 존재함을 확인했다.
 
 ## 11. 결론 및 다음 단계

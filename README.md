@@ -35,6 +35,7 @@ python scripts/ablation_sift_polyphen.py # SIFT/PolyPhen 제외 ablation 실험
 python scripts/statistical_tests.py      # CLASS/IMPACT/Consequence 그룹 간 통계적 가설검정
 python scripts/threshold_analysis.py     # 분류 임계값 조정 Precision-Recall 트레이드오프
 python scripts/advanced_visualizations.py # 잔차플롯/PCA-tSNE/보정곡선/유전자히트맵/2D PDP
+python scripts/build_report_pdf.py       # docs/analysis_report.md -> docs/analysis_report.pdf
 ```
 파이프라인 세부 단계와 공통 규칙은 [`docs/workflow.md`](docs/workflow.md) 참고.
 
@@ -59,13 +60,13 @@ python scripts/advanced_visualizations.py # 잔차플롯/PCA-tSNE/보정곡선/�
 
 **심화 시각화**: t-SNE에서 `IMPACT`별로 뚜렷한 군집이 형성되지만 `CLASS`는 모든 군집에 고르게 섞여있음. 분류기 예측 확률은 과대평가(overconfident) 상태(보정 곡선 대각선 아래). 유전자×IMPACT 히트맵에서 HIGH 등급은 상충 비율이 낮고 LOW/MODIFIER는 급증 — "애매한 변이"에서 해석이 갈림을 확인. (`outputs/advanced_viz/`)
 
-전체 결과와 해석은 [`docs/analysis_report.md`](docs/analysis_report.md) 참고.
+전체 결과와 해석은 [`docs/analysis_report.md`](docs/analysis_report.md)(또는 PDF: [`docs/analysis_report.pdf`](docs/analysis_report.pdf)) 참고.
 
 ## 문서
 | 문서 | 내용 |
 |---|---|
 | [`docs/Problem-definition.md`](docs/Problem-definition.md) | 데이터 선정 이유, 핵심 질문, 회귀분석 기준선 |
 | [`docs/eda_summary.md`](docs/eda_summary.md) | EDA 수치 요약 |
-| [`docs/analysis_report.md`](docs/analysis_report.md) | 종합 분석 리포트 (EDA + 모델 비교 + 해석) |
+| [`docs/analysis_report.md`](docs/analysis_report.md) / [`.pdf`](docs/analysis_report.pdf) | 종합 분석 리포트 (전체 11개 섹션, 최종 보고서) |
 | [`docs/workflow.md`](docs/workflow.md) | 파이프라인 구조와 재현 실행 가이드 |
 | [`docs/work_log.md`](docs/work_log.md) | 작업 진행 이력 |

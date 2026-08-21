@@ -116,6 +116,13 @@
 - 주요 발견: (1) 고유해성 변이(CADD_PHRED>40)에서 모델이 체계적으로 과소예측, (2) t-SNE에서 IMPACT는 뚜렷한 군집을 형성하지만 CLASS는 모든 군집에 고르게 섞여 있음, (3) 분류기 예측 확률이 전반적으로 과대평가(overconfident, scale_pos_weight 부작용), (4) 유전자×IMPACT 히트맵에서 HIGH 등급은 상충 비율이 낮고 LOW/MODIFIER는 급증, (5) BLOSUM62·대립유전자 빈도 간 상호작용 확인
 - `docs/analysis_report.md`(10장 신설, 결론 갱신), `README.md`, `docs/workflow.md`에 반영
 
+### 20. 최종 보고서 PDF 생성
+- `scripts/build_report_pdf.py` 작성: `docs/analysis_report.md`를 python-markdown으로 HTML 변환 → 표지·스타일 적용 → Chrome headless(`--print-to-pdf`)로 PDF 인쇄
+- 1차 생성본에서 10장(심화 시각화) 이미지 5개가 마크다운 이미지 문법이 아니라 파일명 텍스트로만 적혀 있어 실제로 삽입 안 된 것을 발견 → `analysis_report.md` 수정 후 재생성 (18개→23개 이미지)
+- 결과: `docs/analysis_report.pdf` (약 3MB, 표지+11개 섹션+그래프 23개)
+- `.gitignore`에 빌드 중간 산출물 `docs/_report_build.html` 추가
+- `README.md`, `docs/workflow.md`에 반영
+
 ## 진행 중 / 다음에 할 일
-- [ ] 심화 시각화 결과 커밋 및 GitHub 푸시
+- [ ] 최종 보고서 PDF 커밋 및 GitHub 푸시
 - [ ] (선택) 유전자 단위 계층적(mixed-effects) 모델링, CLASS 예측에 특화된 추가 특성(검사기관 수, 질병 카테고리 등) 발굴, 분류기 확률 보정(Platt scaling)
