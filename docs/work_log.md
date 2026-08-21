@@ -131,6 +131,14 @@
 - 결론: 성능 하락은 있으나 치명적이지 않음 — 모델이 유전자를 암기한 게 아니라 일반화 가능한 특성(IMPACT, Consequence, BLOSUM62 등)으로 예측
 - `docs/analysis_report.md`(11장 신설, 결론 갱신), `README.md`, `docs/workflow.md`에 반영, PDF 재생성
 
+### 22. 잔차 이상 패턴(23~36 구간) 원인 규명
+- `scripts/residual_anomaly_investigation.py` 작성·실행: 튜닝된 XGBoost 재학습 후 밴드 내 실제값 분포, Consequence/IMPACT 구성, 잔차 절대값 상위 사례 분석
+- 원인 1: `CADD_PHRED`가 정수로 양자화되어 있음(34.0이 1,431번 등장 등) — 이 구간이 전체 데이터의 29.6%를 차지, 잔차 플롯의 "세로 띠"는 x축 이산화로 인한 과다 중첩(overplotting) 착시
+- 원인 2: 밴드 내 잔차 표준편차(4.67)가 전체(5.82)보다 오히려 낮음 — 실제로는 이 구간에서 모델이 더 나쁘지 않음
+- 원인 3(실재하는 편향): missense_variant/MODERATE(밴드의 81%)는 평균 2.7점 과소예측, stop_gained/HIGH는 평균 2.3점 과대예측 — 그룹 평균으로의 수축(shrinkage) 경향
+- 원인 4(실재하는 한계): 개별 최대 오차 사례는 SIFT/PolyPhen이 "무해" 판정해도 실제 CADD는 높은 경우에 집중(BRCA1/2, PMM2, BUB1B 등) — SIFT/PolyPhen 의존도가 이런 사례에서 예측을 그르침
+- `docs/analysis_report.md`(10-1-A 신설, 결론 갱신), `README.md`, `docs/workflow.md`에 반영, PDF 재생성
+
 ## 진행 중 / 다음에 할 일
-- [ ] Group Split 검증 결과 및 최신 PDF 커밋·GitHub 푸시
-- [ ] (선택) 잔차 플롯 이상 패턴(실제값 23~36 구간) 원인 규명, CLASS 예측에 특화된 추가 특성(검사기관 수, 질병 카테고리 등) 발굴, 분류기 확률 보정(Platt scaling), 오류 분석
+- [ ] 잔차 이상 패턴 규명 결과 및 최신 PDF 커밋·GitHub 푸시
+- [ ] (선택) CLASS 예측에 특화된 추가 특성(검사기관 수, 질병 카테고리 등) 발굴, 분류기 확률 보정(Platt scaling), SIFT/PolyPhen 오분류 사례의 공통 보존성 특성 발굴
