@@ -54,7 +54,25 @@
 - `docs/analysis_report.md` 작성: 개요, 데이터 설명, EDA 요약, 기준선, 1차 모델 비교, 결론/다음 단계
 - 모델 개선 결과는 백그라운드 작업 완료 후 추가 예정
 
+### 11. GitHub 저장소 생성 및 푸시
+- `git init`, `main` 브랜치로 초기 커밋 (README, docs, scripts, outputs, data)
+- `gh repo create genetic-variant-classifications --public` 로 저장소 생성 및 푸시
+- https://github.com/hannahyu-source/genetic-variant-classifications
+
+### 12. 모델 개선 파이프라인 완료
+- `model_improvement.py` 재실행 두 차례 시행착오 끝에 완료 (총 소요시간 8,413초 ≈ 140분)
+  - 1차 시도: 파이프라인 내부 모델과 CV/탐색이 모두 `n_jobs=-1`이라 CPU 오버서브스크립션 발생 → 중단
+  - 2차 시도: 내부 모델 `n_jobs=1`로 수정했으나 baseline RandomForest가 `max_depth=None`(깊이 제한 없음)이라 여전히 느림(13분+) → 중단
+  - 3차 시도: RandomForest `max_depth=20` 제한 + 튜닝 탐색에서 `max_depth=None` 옵션 제거 후 재실행 → 완료
+- 최종 결과 (holdout, `outputs/model_improvement/`):
+  | 단계 | 최우수 모델 | RMSE | MAE | R² |
+  |---|---|---|---|---|
+  | Baseline | XGBoost | 6.063 | 4.769 | 0.683 |
+  | +피처엔지니어링 | XGBoost | 5.856 | 4.583 | 0.704 |
+  | +튜닝 | XGBoost | 5.817 | 4.537 | 0.708 |
+- 피처 엔지니어링(로그변환, 위치 파싱)의 개선폭(+0.021)이 하이퍼파라미터 튜닝의 개선폭(+0.004)보다 큼을 확인
+- `docs/analysis_report.md`에 결과 반영 완료
+
 ## 진행 중 / 다음에 할 일
-- [ ] `model_improvement.py` 완료 대기 → baseline/engineered/tuned 단계별 RMSE·MAE·R² 비교표 및 그래프 확보
-- [ ] 결과를 `docs/analysis_report.md`에 반영
+- [ ] 모델 개선 결과 커밋 및 GitHub 푸시
 - [ ] (선택) SHAP 해석, `CLASS` 분류 모델, 통계적 가설검정 등 추가 분석 방향

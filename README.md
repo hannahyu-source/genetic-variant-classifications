@@ -32,16 +32,16 @@ python scripts/model_improvement.py      # 피처 엔지니어링 + CV + 하이�
 ```
 파이프라인 세부 단계와 공통 규칙은 [`docs/workflow.md`](docs/workflow.md) 참고.
 
-## 결과 요약 (1차 비교, 기본 하이퍼파라미터)
-| 모델 | RMSE | MAE | R² |
-|---|---|---|---|
-| LinearRegression | 6.366 | 5.044 | 0.651 |
-| RandomForest | 6.343 | 4.906 | 0.653 |
-| XGBoost | 6.059 | 4.770 | 0.684 |
+## 결과 요약 (최종, holdout 테스트 기준)
+| 단계 | 모델 | RMSE | MAE | R² |
+|---|---|---|---|---|
+| Baseline | LinearRegression | 6.366 | 5.044 | 0.651 |
+| Baseline | RandomForest | 6.164 | 4.814 | 0.672 |
+| Baseline | XGBoost | 6.063 | 4.769 | 0.683 |
+| +피처엔지니어링 | XGBoost | 5.856 | 4.583 | 0.704 |
+| **+튜닝** | **XGBoost** | **5.817** | **4.537** | **0.708** |
 
-→ 대립유전자 빈도·변이 위치·유전자 등의 특성만으로 `CADD_PHRED` 변동의 약 65~68%를 설명 가능 (순수 평균 예측 기준선 대비 RMSE 약 41~44% 감소). 자세한 근거와 기준선 정의는 [`docs/Problem-definition.md`](docs/Problem-definition.md), 전체 해석은 [`docs/analysis_report.md`](docs/analysis_report.md) 참고.
-
-피처 엔지니어링(로그변환, 위치 파싱)과 하이퍼파라미터 튜닝을 적용한 개선 결과는 진행 중이며 완료 후 리포트에 반영 예정.
+→ 대립유전자 빈도·변이 위치·유전자 등의 특성으로 `CADD_PHRED` 변동의 약 71%를 설명 가능 (순수 평균 예측 기준선 R²=0 대비). **피처 엔지니어링(로그변환, 위치 파싱)의 효과가 하이퍼파라미터 튜닝보다 큼**(R² 개선폭 +0.021 vs +0.004). 전체 결과와 해석은 [`docs/analysis_report.md`](docs/analysis_report.md) 참고.
 
 ## 문서
 | 문서 | 내용 |

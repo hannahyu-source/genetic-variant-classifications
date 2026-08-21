@@ -49,7 +49,33 @@
 - RandomForest는 선형회귀 대비 근소한 개선에 그침 — 기본 하이퍼파라미터(트리 수 300, 깊이 제한 없음)로는 XGBoost의 부스팅 방식만큼의 이득을 내지 못함.
 - XGBoost의 특성 중요도 상위 변수는 `outputs/feature_importance_XGBoost.png` 참고.
 
-## 6. 결론 및 다음 단계
-- 유전 변이의 대립유전자 빈도·기능적 영향·아미노산 치환 정보만으로 `CADD_PHRED`의 상당 부분(R²≈0.65~0.68)을 설명할 수 있음을 확인했다.
-- 현재 **모델 개선 단계**(피처 엔지니어링: 로그변환·위치 파싱, 5-fold 교차검증, RandomizedSearchCV 하이퍼파라미터 튜닝)를 진행 중이며, 완료되는 대로 baseline → 엔지니어링 → 튜닝 단계별 개선폭을 이 리포트에 추가할 예정이다. (결과 파일 예정 위치: `outputs/model_improvement/`)
+## 6. 모델 개선 (피처 엔지니어링 + 5-fold CV + 하이퍼파라미터 튜닝)
+`scripts/model_improvement.py` 실행 결과 (동일 holdout 테스트셋, `outputs/model_improvement/`)
+
+**엔지니어링 피처**: 대립유전자 빈도 로그변환(`log1p`), `EXON`/`INTRON` 비율 파싱, `Protein_position`/`CDS_position`/`cDNA_position` 수치화
+**튜닝**: RandomizedSearchCV (`n_iter=10, cv=3, scoring=neg_root_mean_squared_error`), RandomForest·XGBoost 대상
+
+| 단계 | 모델 | RMSE | MAE | R² |
+|---|---|---|---|---|
+| Baseline | LinearRegression | 6.366 | 5.044 | 0.651 |
+| Baseline | RandomForest | 6.164 | 4.814 | 0.672 |
+| Baseline | XGBoost | 6.063 | 4.769 | 0.683 |
+| +피처엔지니어링 | LinearRegression | 6.360 | 5.037 | 0.651 |
+| +피처엔지니어링 | RandomForest | 5.938 | 4.607 | 0.696 |
+| +피처엔지니어링 | XGBoost | 5.856 | 4.583 | 0.704 |
+| +튜닝 | RandomForest | 5.895 | 4.576 | 0.700 |
+| **+튜닝** | **XGBoost** | **5.817** | **4.537** | **0.708** |
+
+![전체 비교](../outputs/model_improvement/all_holdout_comparison.png)
+![XGBoost 개선 단계](../outputs/model_improvement/xgboost_improvement_stages.png)
+
+**해석**:
+- 최종 최우수 모델은 **튜닝된 XGBoost** (R²=0.708) — baseline XGBoost(0.683) 대비 RMSE 8.6% 감소, R² +0.057.
+- **피처 엔지니어링의 효과가 하이퍼파라미터 튜닝보다 크다**: XGBoost 기준 피처 엔지니어링만으로 R²가 0.683→0.704로 개선(+0.021)된 반면, 이후 튜닝의 추가 개선은 0.704→0.708(+0.004)에 그침. RandomForest도 동일 패턴(엔지니어링 +0.024 vs 튜닝 +0.004) — 대립유전자 빈도 로그변환과 위치 정보 수치화가 실질적인 정보를 더했다는 뜻.
+- 선형회귀는 피처 엔지니어링으로 거의 개선되지 않음(0.651→0.651) — 로그변환·위치 정보가 비선형적으로 작용하기 때문에 트리 기반 모델에서만 효과가 나타남.
+- 5-fold CV 표준편차가 ±0.004~0.006(R² 기준)로 작아 결과가 안정적임을 확인 (`outputs/model_improvement/results.json`).
+
+## 7. 결론 및 다음 단계
+- 유전 변이의 대립유전자 빈도·변이 위치·유전자·기능적 영향 정보로 `CADD_PHRED`의 상당 부분(R²≈0.71)을 설명할 수 있음을 확인했다.
+- 피처 엔지니어링(로그변환, 위치 정보 수치화)이 하이퍼파라미터 튜닝보다 더 큰 성능 개선을 가져왔다 — 향후 유사 작업에서는 튜닝보다 도메인 지식 기반 피처 엔지니어링을 우선하는 것이 효율적일 수 있다.
 - 추후 확장 가능한 분석 방향: SHAP 기반 모델 해석, 원본 분류 타겟(`CLASS`) 예측 모델 구축, Consequence/CLASS 그룹 간 통계적 가설검정.
