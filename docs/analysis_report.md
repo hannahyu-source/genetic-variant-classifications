@@ -98,9 +98,21 @@
 ![Dependence Plot](../outputs/shap/04_dependence_top6.png)
 
 **해석**:
-- 상위 4개(IMPACT, SIFT, PolyPhen, Consequence)가 모두 변이의 기능적 영향/유해성을 나타내는 변수. 특히 **SIFT·PolyPhen이 2·3위로 비중이 매우 큰데**, 이 둘은 CADD와 별개의 도구지만 같은 개념(단백질 기능 손상)을 측정하므로 모델이 크게 의존하고 있다 — 3장 EDA에서 우려했던 "정보 중복"이 SHAP에서도 확인됨. 두 변수를 제외하고 재학습하면 모델이 얼마나 더 "독립적인" 정보에 의존하는지 확인 가능(향후 ablation 과제).
+- 상위 4개(IMPACT, SIFT, PolyPhen, Consequence)가 모두 변이의 기능적 영향/유해성을 나타내는 변수. 특히 **SIFT·PolyPhen이 2·3위로 비중이 매우 큰데**, 이 둘은 CADD와 별개의 도구지만 같은 개념(단백질 기능 손상)을 측정하므로 모델이 크게 의존하고 있다 — 3장 EDA에서 우려했던 "정보 중복" 가능성이 SHAP에서도 확인됨. → 아래 ablation 실험으로 검증.
 - `EXON_ratio`(피처 엔지니어링으로 추가한 변수)가 9위에 랭크 — 6장에서 확인한 피처 엔지니어링의 효과를 변수 단위로도 재확인.
 - 대립유전자 빈도(`log_AF_TGP` 등)는 하위권이지만 0보다 뚜렷이 큰 기여 — 흔한 변이일수록 병원성이 낮다는 EDA의 상관관계 방향과 일치.
+
+### 7-1. Ablation 실험: SIFT/PolyPhen 제외
+`scripts/ablation_sift_polyphen.py` 실행 결과 (`outputs/ablation/`) — SHAP에서 제기된 "정보 중복" 가능성을 검증하기 위해, 튜닝된 XGBoost를 SIFT·PolyPhen 없이 동일 조건으로 재학습.
+
+| 구성 | RMSE | MAE | R² |
+|---|---|---|---|
+| Full (SIFT+PolyPhen 포함) | 5.817 | 4.537 | 0.708 |
+| SIFT+PolyPhen 제외 | 6.826 | 5.297 | 0.598 |
+
+![Ablation 결과](../outputs/ablation/ablation_comparison.png)
+
+**해석 (SHAP 예상과 반대되는 결과)**: R²가 0.708→0.598로 15.5% 하락, RMSE는 17% 증가 — 예상보다 훨씬 크게 떨어졌다. SHAP 중요도만 보고 "CADD와 개념이 겹치니 중복 정보일 것"이라 추정했지만, 실제로는 SIFT·PolyPhen이 IMPACT·Consequence·BLOSUM62 등 다른 특성이 포착하지 못하는 **독립적인 예측 정보**(서로 다른 알고리즘·보존성 모델 기반의 단백질 기능 예측)를 상당 부분 담고 있었다는 뜻이다. SHAP 중요도가 높다고 해서 그 변수가 다른 변수로 대체 가능(중복)하다는 것은 아니며, 실제 기여도는 이렇게 직접 제외해보는 ablation으로만 확인할 수 있다는 것이 이번 실험의 핵심 교훈이다.
 
 ## 8. 분류로 확장: CLASS(임상 해석 상충 여부) 예측
 `scripts/classify_conflicting.py` 실행 결과 (`outputs/classification/`) — 원본 데이터셋의 취지인 `CLASS`(0: 비상충 74.8%, 1: 상충 25.2%)를 별도 분류 문제로 예측. 특성은 회귀와 동일 + `CADD_PHRED`를 특성으로 추가(타겟이 CLASS이므로 누수 아님). 클래스 불균형은 `class_weight="balanced"`(LR/RF), `scale_pos_weight`(XGB)로 보정.
@@ -124,6 +136,6 @@
 ## 9. 결론 및 다음 단계
 - 유전 변이의 대립유전자 빈도·변이 위치·유전자·기능적 영향 정보로 `CADD_PHRED`의 상당 부분(R²≈0.71)을 설명할 수 있음을 확인했다.
 - 피처 엔지니어링(로그변환, 위치 정보 수치화)이 하이퍼파라미터 튜닝보다 더 큰 성능 개선을 가져왔다 — 향후 유사 작업에서는 튜닝보다 도메인 지식 기반 피처 엔지니어링을 우선하는 것이 효율적일 수 있다.
-- SHAP 해석 결과, 모델은 SIFT·PolyPhen 같은 기존 유해성 예측 도구에 크게 의존한다 — 완전히 독립적인 신규 정보로서의 기여는 이보다 작을 수 있음에 유의.
+- SHAP 해석 결과 모델은 SIFT·PolyPhen에 크게 의존하며, ablation 실험으로 검증한 결과 이 둘을 제외하면 R²가 0.708→0.598(15.5%↓)로 크게 하락 — 두 변수가 단순 중복 정보가 아니라 다른 특성이 포착하지 못하는 독립적인 예측력을 갖고 있음을 확인했다.
 - `CLASS`(상충 여부) 분류로 확장한 결과 ROC-AUC 0.791로 회귀보다는 어려운 문제였으며, 특정 질병 유전자(BRCA1/2 등)가 상충 예측에 중요하다는 것을 확인했다.
-- 추후 확장 가능한 분석 방향: SIFT/PolyPhen 제외 ablation 실험, Consequence/CLASS 그룹 간 통계적 가설검정, 분류 모델의 임계값(threshold) 조정을 통한 Precision-Recall 트레이드오프 분석.
+- 추후 확장 가능한 분석 방향: Consequence/CLASS 그룹 간 통계적 가설검정, 분류 모델의 임계값(threshold) 조정을 통한 Precision-Recall 트레이드오프 분석.

@@ -20,6 +20,7 @@ scripts/  분석 파이프라인 스크립트
 | 4 | `scripts/model_improvement.py` | `data/clinvar_conflicting.csv` | `outputs/model_improvement/*` | 피처 엔지니어링 + 5-fold CV + 하이퍼파라미터 튜닝 + 최종 비교 |
 | 5 | `scripts/shap_interpretation.py` | `data/clinvar_conflicting.csv` | `outputs/shap/*` | 튜닝된 XGBoost를 SHAP `TreeExplainer`로 해석 (`model_improvement.py`에서 import) |
 | 6 | `scripts/classify_conflicting.py` | `data/clinvar_conflicting.csv` | `outputs/classification/*` | `CLASS`(상충 여부) 분류로 확장 — LR/RF/XGB, Accuracy·Precision·Recall·F1·ROC-AUC |
+| 7 | `scripts/ablation_sift_polyphen.py` | `data/clinvar_conflicting.csv` | `outputs/ablation/*` | SIFT/PolyPhen 제외 시 튜닝된 XGBoost 성능 변화 검증 |
 
 문서 산출물: `docs/Problem-definition.md`(문제 정의·기준선), `docs/analysis_report.md`(종합 리포트), `docs/work_log.md`(작업 이력)
 

@@ -90,6 +90,12 @@
 - XGBoost feature importance 상위권에 `IMPACT_HIGH`, 대립유전자 빈도, 그리고 BRCA1/2·LDLR·MSH6 등 잘 알려진 질병 유전자들이 랭크됨
 - `docs/analysis_report.md`(7·8·9장), `README.md`에 SHAP·분류 결과 반영
 
+### 16. SIFT/PolyPhen 제외 Ablation 실험
+- `scripts/ablation_sift_polyphen.py` 작성·실행: 튜닝된 XGBoost(회귀)를 SIFT·PolyPhen 없이 동일 조건(같은 튜닝 파라미터, 같은 train/test 분할)으로 재학습해 비교
+- 결과: R² 0.708→0.598 (15.5% 하락), RMSE 5.817→6.826
+- SHAP에서 예상했던 "정보 중복"과 반대 — SIFT·PolyPhen은 다른 특성이 포착 못하는 독립적인 예측 정보를 담고 있었음을 확인. SHAP 중요도만으로는 대체 가능성(중복 여부)을 판단할 수 없고, ablation이 필요하다는 교훈을 얻음
+- `docs/analysis_report.md`(7-1절, 결론), `README.md`에 반영
+
 ## 진행 중 / 다음에 할 일
-- [ ] SHAP·분류 결과 커밋 및 GitHub 푸시
-- [ ] (선택) SIFT/PolyPhen 제외 ablation, 통계적 가설검정, 분류 임계값 조정을 통한 Precision-Recall 트레이드오프 분석
+- [ ] Ablation 결과 커밋 및 GitHub 푸시
+- [ ] (선택) Consequence/CLASS 그룹 간 통계적 가설검정, 분류 임계값 조정을 통한 Precision-Recall 트레이드오프 분석
