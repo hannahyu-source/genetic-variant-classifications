@@ -108,6 +108,14 @@
 - 결과: 기본 임계값이 이미 F1 최적점에 근접(AP=0.533), 고정밀 시나리오는 Recall이 0.088까지 붕괴 — 임계값 조정으로 해결 안 되는 특성 신호의 한계로 결론
 - `docs/analysis_report.md`(8-1절 신설, 결론 갱신), `README.md`, `docs/workflow.md`에 반영
 
+### 19. 심화 시각화 5종
+- `scripts/advanced_visualizations.py` 작성: 잔차플롯, PCA/t-SNE 임베딩, 분류기 보정곡선, 유전자×IMPACT 히트맵, 2D PDP 상호작용
+- 1차 실행 결과 2개 플롯에 버그 발견 및 수정:
+  - PCA/t-SNE: 트리 모델용(스케일링 없음) preprocessor를 재사용해 위치 정보 등 스케일 큰 변수가 지배 → 설명분산 100%로 무의미. `scale_numeric=True` 전용 preprocessor로 교체 후 재실행(설명분산 37.6%로 정상화)
+  - 2D PDP: `BLOSUM62`(결측 60%)에 NaN이 남아있어 sklearn이 `np.percentile`(NaN 무시 안 함)로 그리드를 깨뜨림 → 중앙값으로 결측 대체 후 재실행
+- 주요 발견: (1) 고유해성 변이(CADD_PHRED>40)에서 모델이 체계적으로 과소예측, (2) t-SNE에서 IMPACT는 뚜렷한 군집을 형성하지만 CLASS는 모든 군집에 고르게 섞여 있음, (3) 분류기 예측 확률이 전반적으로 과대평가(overconfident, scale_pos_weight 부작용), (4) 유전자×IMPACT 히트맵에서 HIGH 등급은 상충 비율이 낮고 LOW/MODIFIER는 급증, (5) BLOSUM62·대립유전자 빈도 간 상호작용 확인
+- `docs/analysis_report.md`(10장 신설, 결론 갱신), `README.md`, `docs/workflow.md`에 반영
+
 ## 진행 중 / 다음에 할 일
-- [ ] 임계값 분석 결과 커밋 및 GitHub 푸시
-- [ ] (선택) 유전자 단위 계층적(mixed-effects) 모델링, CLASS 예측에 특화된 추가 특성(검사기관 수, 질병 카테고리 등) 발굴
+- [ ] 심화 시각화 결과 커밋 및 GitHub 푸시
+- [ ] (선택) 유전자 단위 계층적(mixed-effects) 모델링, CLASS 예측에 특화된 추가 특성(검사기관 수, 질병 카테고리 등) 발굴, 분류기 확률 보정(Platt scaling)
