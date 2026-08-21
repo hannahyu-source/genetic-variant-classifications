@@ -96,6 +96,12 @@
 - SHAP에서 예상했던 "정보 중복"과 반대 — SIFT·PolyPhen은 다른 특성이 포착 못하는 독립적인 예측 정보를 담고 있었음을 확인. SHAP 중요도만으로는 대체 가능성(중복 여부)을 판단할 수 없고, ablation이 필요하다는 교훈을 얻음
 - `docs/analysis_report.md`(7-1절, 결론), `README.md`에 반영
 
+### 17. 통계적 가설검정
+- `scripts/statistical_tests.py` 작성·실행: CLASS(Welch's t-test + Mann-Whitney), IMPACT/Consequence(Kruskal-Wallis + 효과크기) 검정
+- 콘솔 출력 시 em-dash(—) 문자로 `UnicodeEncodeError`(cp949) 발생 → `sys.stdout.reconfigure(encoding="utf-8")` 추가로 해결 (파일 저장 자체는 문제 없었음)
+- 결과: IMPACT(eta²=0.381)·Consequence(eta²=0.379)는 큰 효과, CLASS는 통계적으로 유의하나 효과크기 무시할 수준(Cohen's d=-0.087) — 표본 크기(n≈6만)로 인한 "통계적 유의 vs 실질적 의미" 괴리를 확인
+- `docs/analysis_report.md`(9장 신설, 결론 갱신), `README.md`, `docs/workflow.md`에 반영
+
 ## 진행 중 / 다음에 할 일
-- [ ] Ablation 결과 커밋 및 GitHub 푸시
-- [ ] (선택) Consequence/CLASS 그룹 간 통계적 가설검정, 분류 임계값 조정을 통한 Precision-Recall 트레이드오프 분석
+- [ ] 통계적 가설검정 결과 커밋 및 GitHub 푸시
+- [ ] (선택) 분류 임계값 조정을 통한 Precision-Recall 트레이드오프 분석, 유전자 단위 계층적 모델링

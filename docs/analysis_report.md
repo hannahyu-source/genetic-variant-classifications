@@ -133,9 +133,31 @@
 - LogisticRegression은 `class_weight="balanced"`로 인해 Recall(0.854)은 높지만 Precision(0.348)이 낮아 상충을 과도하게 예측하는 경향. 트리 모델(RF/XGB)이 Precision·Recall 균형이 더 좋음.
 - XGBoost feature importance 상위권: `IMPACT_HIGH`, 대립유전자 빈도(`log_AF_TGP`, `log_AF_EXAC`), 특정 유전자(`LDLR`, `RAD50`, `APC`, `MYBPC3`, `MSH6`, `BRCA1`, `BRCA2`, `NF1`) — 잘 알려진 질병 유전자일수록 여러 검사기관이 제출·검토하는 빈도가 높아 해석 상충 가능성도 높아지는 것으로 해석됨 (`outputs/classification/feature_importance_XGBoost.png`).
 
-## 9. 결론 및 다음 단계
+## 9. 통계적 가설검정
+`scripts/statistical_tests.py` 실행 결과 (`outputs/stats/`) — 표본이 커서(n≈6만) p-value만으로는 "통계적 유의"와 "실질적 의미"를 구분하기 어려우므로 효과크기(Cohen's d, eta-squared)를 함께 계산.
+
+![그룹 비교 boxplot](../outputs/stats/group_comparison_boxplots.png)
+
+**Test A. CLASS(상충 여부)에 따른 CADD_PHRED 차이**
+- CLASS=0 평균 15.924 vs CLASS=1 평균 14.986
+- Welch's t-test p=2.3e-23, Mann-Whitney p=1.1e-14 → 통계적으로 유의
+- **Cohen's d = -0.087 (무시할 수준)** → 표본이 커서 유의하게 나왔을 뿐 실질적 차이는 거의 없음. EDA에서 확인한 "CLASS와 CADD_PHRED 상관계수 -0.038"과 일관됨.
+
+**Test B. IMPACT 등급에 따른 CADD_PHRED 차이**
+- HIGH(33.0) > MODERATE(19.6) > LOW(8.8) > MODIFIER(6.8)
+- Kruskal-Wallis p≈0, **eta²=0.381 (큰 효과)** — 통계적으로도 실질적으로도 확실한 차이
+- 사후검정(Bonferroni 보정, 6개 쌍): 전부 유의 — 네 등급이 서로 뚜렷하게 구분됨
+
+**Test C. Consequence 유형별 CADD_PHRED 차이 (상위 8개)**
+- stop_gained(39.5), frameshift_variant(31.1)가 가장 높고 intron_variant(6.2)가 가장 낮음
+- Kruskal-Wallis p≈0, **eta²=0.379 (큰 효과)**
+
+**해석**: 가설검정 결과가 지금까지의 회귀·SHAP 결과를 통계적으로 뒷받침한다 — `IMPACT`·`Consequence`는 `CADD_PHRED`에 크고 실질적인 영향(eta²≈0.38)을 주는 반면, `CLASS`는 통계적으로만 유의할 뿐 실질적 영향은 거의 없다(d=-0.087). 이는 회귀 모델에서 `CLASS`를 특성으로 사용하지 않은 설계, 그리고 SHAP·XGBoost feature importance에서 CLASS 관련 정보가 상위권에 없었던 것과 일관된다.
+
+## 10. 결론 및 다음 단계
 - 유전 변이의 대립유전자 빈도·변이 위치·유전자·기능적 영향 정보로 `CADD_PHRED`의 상당 부분(R²≈0.71)을 설명할 수 있음을 확인했다.
 - 피처 엔지니어링(로그변환, 위치 정보 수치화)이 하이퍼파라미터 튜닝보다 더 큰 성능 개선을 가져왔다 — 향후 유사 작업에서는 튜닝보다 도메인 지식 기반 피처 엔지니어링을 우선하는 것이 효율적일 수 있다.
 - SHAP 해석 결과 모델은 SIFT·PolyPhen에 크게 의존하며, ablation 실험으로 검증한 결과 이 둘을 제외하면 R²가 0.708→0.598(15.5%↓)로 크게 하락 — 두 변수가 단순 중복 정보가 아니라 다른 특성이 포착하지 못하는 독립적인 예측력을 갖고 있음을 확인했다.
 - `CLASS`(상충 여부) 분류로 확장한 결과 ROC-AUC 0.791로 회귀보다는 어려운 문제였으며, 특정 질병 유전자(BRCA1/2 등)가 상충 예측에 중요하다는 것을 확인했다.
-- 추후 확장 가능한 분석 방향: Consequence/CLASS 그룹 간 통계적 가설검정, 분류 모델의 임계값(threshold) 조정을 통한 Precision-Recall 트레이드오프 분석.
+- 통계적 가설검정으로 `IMPACT`/`Consequence`의 큰 효과크기(eta²≈0.38)와 `CLASS`의 무시할 만한 효과크기(d=-0.087)를 확인해, 앞선 모델링 결과를 통계적으로 뒷받침했다.
+- 추후 확장 가능한 분석 방향: 분류 모델의 임계값(threshold) 조정을 통한 Precision-Recall 트레이드오프 분석, 유전자 단위 계층적(mixed-effects) 모델링.

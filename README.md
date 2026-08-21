@@ -32,6 +32,7 @@ python scripts/model_improvement.py      # 피처 엔지니어링 + CV + 하이�
 python scripts/shap_interpretation.py    # 튜닝된 XGBoost SHAP 해석
 python scripts/classify_conflicting.py   # CLASS(상충 여부) 분류로 확장
 python scripts/ablation_sift_polyphen.py # SIFT/PolyPhen 제외 ablation 실험
+python scripts/statistical_tests.py      # CLASS/IMPACT/Consequence 그룹 간 통계적 가설검정
 ```
 파이프라인 세부 단계와 공통 규칙은 [`docs/workflow.md`](docs/workflow.md) 참고.
 
@@ -49,6 +50,8 @@ python scripts/ablation_sift_polyphen.py # SIFT/PolyPhen 제외 ablation 실험
 **SHAP 해석 + Ablation**: 튜닝된 XGBoost는 `IMPACT`, `SIFT`, `PolyPhen`, `Consequence` 순으로 크게 의존. SIFT·PolyPhen을 제외하고 재학습한 ablation 실험 결과 R²가 0.708→0.598(15.5%↓)로 크게 하락 — SHAP에서 예상했던 "정보 중복"과 달리, 두 변수는 다른 특성이 포착 못하는 독립적인 예측력을 갖고 있음을 확인. (`outputs/shap/`, `outputs/ablation/`)
 
 **분류 확장 (`CLASS`, 상충 여부)**: XGBoost 기준 ROC-AUC 0.791, F1 0.564 — 회귀보다 어려운 문제. 잘 알려진 질병 유전자(BRCA1/2, LDLR, MSH6 등)일수록 검사기관 간 해석 상충 가능성이 높게 나타남. (`outputs/classification/`)
+
+**통계적 가설검정**: `IMPACT`·`Consequence`는 `CADD_PHRED`에 크고 실질적인 영향(eta²≈0.38, Kruskal-Wallis p≈0)을 주는 반면, `CLASS`는 통계적으로만 유의할 뿐 실질적 영향은 거의 없음(Cohen's d=-0.087) — 지금까지의 모델링 결과를 통계적으로 뒷받침. (`outputs/stats/`)
 
 전체 결과와 해석은 [`docs/analysis_report.md`](docs/analysis_report.md) 참고.
 
