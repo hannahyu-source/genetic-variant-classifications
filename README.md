@@ -35,6 +35,7 @@ python scripts/ablation_sift_polyphen.py # SIFT/PolyPhen 제외 ablation 실험
 python scripts/statistical_tests.py      # CLASS/IMPACT/Consequence 그룹 간 통계적 가설검정
 python scripts/threshold_analysis.py     # 분류 임계값 조정 Precision-Recall 트레이드오프
 python scripts/advanced_visualizations.py # 잔차플롯/PCA-tSNE/보정곡선/유전자히트맵/2D PDP
+python scripts/gene_group_validation.py  # 유전자 기반 Group Split 일반화 검증
 python scripts/build_report_pdf.py       # docs/analysis_report.md -> docs/analysis_report.pdf
 ```
 파이프라인 세부 단계와 공통 규칙은 [`docs/workflow.md`](docs/workflow.md) 참고.
@@ -59,6 +60,8 @@ python scripts/build_report_pdf.py       # docs/analysis_report.md -> docs/analy
 **임계값 조정 (Precision-Recall)**: 기본 임계값(0.5)이 이미 F1 최적점에 가까움(AP=0.533). Precision을 0.70까지 올리려면 Recall이 0.088로 붕괴 — 임계값 튜닝으로는 해결되지 않는 특성 신호 자체의 한계. (`outputs/threshold_analysis/`)
 
 **심화 시각화**: t-SNE에서 `IMPACT`별로 뚜렷한 군집이 형성되지만 `CLASS`는 모든 군집에 고르게 섞여있음. 분류기 예측 확률은 과대평가(overconfident) 상태(보정 곡선 대각선 아래). 유전자×IMPACT 히트맵에서 HIGH 등급은 상충 비율이 낮고 LOW/MODIFIER는 급증 — "애매한 변이"에서 해석이 갈림을 확인. (`outputs/advanced_viz/`)
+
+**일반화 검증 (유전자 Group Split)**: 기존 랜덤 분할은 test 유전자의 95.7%가 train에도 존재해 낙관적이었음(R²=0.709). 완전히 새로운 유전자로 검증하면 R²≈0.64~0.65로 현실적인 성능이 나옴 — 하락은 있지만 유전자 암기가 아닌 일반화 가능한 특성 기반 예측임을 확인. (`outputs/gene_group_validation/`)
 
 전체 결과와 해석은 [`docs/analysis_report.md`](docs/analysis_report.md)(또는 PDF: [`docs/analysis_report.pdf`](docs/analysis_report.pdf)) 참고.
 

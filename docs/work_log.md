@@ -123,6 +123,14 @@
 - `.gitignore`에 빌드 중간 산출물 `docs/_report_build.html` 추가
 - `README.md`, `docs/workflow.md`에 반영
 
+### 21. 유전자 기반 Group Split 일반화 검증
+- `scripts/gene_group_validation.py` 작성·실행: 기존 랜덤 분할 vs `GroupShuffleSplit`/`GroupKFold`(유전자 `SYMBOL` 단위) 비교
+- `SYMBOL` 결측 16행 때문에 `GroupShuffleSplit`이 `ValueError: Input contains NaN`으로 실패 → dropna 대상에 `SYMBOL` 추가해 해결
+- 진단: 기존 랜덤 분할은 test 유전자의 95.7%가 train에도 존재 — 우려했던 리키지가 실제로 큼
+- 결과: 완전히 새로운 유전자(1,860개로 학습, 466개로 검증)에서 R² 0.709→0.639(단일 분할), GroupKFold 5-fold 평균 R²=0.653±0.025로 일관되게 재현
+- 결론: 성능 하락은 있으나 치명적이지 않음 — 모델이 유전자를 암기한 게 아니라 일반화 가능한 특성(IMPACT, Consequence, BLOSUM62 등)으로 예측
+- `docs/analysis_report.md`(11장 신설, 결론 갱신), `README.md`, `docs/workflow.md`에 반영, PDF 재생성
+
 ## 진행 중 / 다음에 할 일
-- [ ] 최종 보고서 PDF 커밋 및 GitHub 푸시
-- [ ] (선택) 유전자 단위 계층적(mixed-effects) 모델링, CLASS 예측에 특화된 추가 특성(검사기관 수, 질병 카테고리 등) 발굴, 분류기 확률 보정(Platt scaling)
+- [ ] Group Split 검증 결과 및 최신 PDF 커밋·GitHub 푸시
+- [ ] (선택) 잔차 플롯 이상 패턴(실제값 23~36 구간) 원인 규명, CLASS 예측에 특화된 추가 특성(검사기관 수, 질병 카테고리 등) 발굴, 분류기 확률 보정(Platt scaling), 오류 분석

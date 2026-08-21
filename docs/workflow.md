@@ -24,7 +24,8 @@ scripts/  분석 파이프라인 스크립트
 | 8 | `scripts/statistical_tests.py` | `data/clinvar_conflicting.csv` | `outputs/stats/*` | CLASS/IMPACT/Consequence 그룹 간 CADD_PHRED 차이 가설검정 (t-test, Mann-Whitney, Kruskal-Wallis, 효과크기) |
 | 9 | `scripts/threshold_analysis.py` | `data/clinvar_conflicting.csv` | `outputs/threshold_analysis/*` | XGBoost 분류기 임계값별 Precision-Recall 트레이드오프 분석 |
 | 10 | `scripts/advanced_visualizations.py` | `data/clinvar_conflicting.csv` | `outputs/advanced_viz/*` | 잔차플롯, PCA/t-SNE 임베딩, 분류기 보정곡선, 유전자x IMPACT 히트맵, 2D PDP 상호작용 |
-| 11 | `scripts/build_report_pdf.py` | `docs/analysis_report.md` | `docs/analysis_report.pdf` | Markdown 리포트를 스타일 적용 HTML로 변환 후 Chrome headless로 PDF 인쇄 (최종 보고서) |
+| 11 | `scripts/gene_group_validation.py` | `data/clinvar_conflicting.csv` | `outputs/gene_group_validation/*` | 유전자(`SYMBOL`) 기반 GroupShuffleSplit/GroupKFold로 미지 유전자 일반화 검증 |
+| 12 | `scripts/build_report_pdf.py` | `docs/analysis_report.md` | `docs/analysis_report.pdf` | Markdown 리포트를 스타일 적용 HTML로 변환 후 Chrome headless로 PDF 인쇄 (최종 보고서) |
 
 문서 산출물: `docs/Problem-definition.md`(문제 정의·기준선), `docs/analysis_report.md`(종합 리포트), `docs/work_log.md`(작업 이력)
 
