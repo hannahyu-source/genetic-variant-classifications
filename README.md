@@ -222,4 +222,20 @@ python src/utils/build_report_pdf.py      # docs/analysis_report.md -> docs/anal
 
 ---
 
+## AI-Assisted Development
+
+이 프로젝트의 구현(코드 작성, 리팩터링, 디버깅, 문서화)에는 Claude Code의 도움을 받았습니다.
+연구 질문 설정, 생물학적 해석, 검증 전략, 과학적 한계에 대한 판단은 프로젝트 저자가 직접 검토하고 결정했습니다.
+
+---
+
+## Genomics Portfolio Series
+
+이 저장소는 4부작 유전체 포트폴리오 중 하나입니다.
+
+01. **Family Genome × KEGG Integration** — [kegg-family-genome-analysis](https://github.com/hannahyu-source/kegg-family-genome-analysis)
+02. **Genomic Variant Machine Learning** — [genomic-variant-ML-analysis](https://github.com/hannahyu-source/genomic-variant-ML-analysis) ← 현재 저장소
+03. **Family-of-Five Genome Dataset** — [family-genome-analysis](https://github.com/hannahyu-source/family-genome-analysis)
+04. **OncoKB Cancer Genomics Analysis** — [oncoKB-cancer-genomics-analysis](https://github.com/hannahyu-source/oncoKB-cancer-genomics-analysis)
+
 *이 저장소는 Claude Code를 구현 보조 도구로 활용해 개발됐다. 인간-AI 협업 방식은 [`docs/ai_assisted_workflow.md`](docs/ai_assisted_workflow.md)에 투명하게 기록되어 있다.*
