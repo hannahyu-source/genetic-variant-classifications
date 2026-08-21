@@ -4,7 +4,7 @@
 비교: 기존(baseline) 모델 vs 개선(engineered + tuned) 모델
 """
 import json
-import re
+import sys
 import time
 from pathlib import Path
 
@@ -13,96 +13,18 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from sklearn.compose import ColumnTransformer
 from sklearn.ensemble import RandomForestRegressor
-from sklearn.impute import SimpleImputer
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import make_scorer, mean_absolute_error, mean_squared_error, r2_score
 from sklearn.model_selection import KFold, RandomizedSearchCV, cross_validate, train_test_split
 from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import OneHotEncoder, StandardScaler
 from xgboost import XGBRegressor
 
-ROOT = Path(__file__).resolve().parents[1]
-DATA_PATH = ROOT / "data" / "clinvar_conflicting.csv"
-OUT_DIR = ROOT / "outputs" / "model_improvement"
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from common import DATA_PATH, RANDOM_STATE, ROOT, TARGET, build_feature_sets, build_preprocessor
+
+OUT_DIR = ROOT / "results" / "regression" / "model_improvement"
 OUT_DIR.mkdir(parents=True, exist_ok=True)
-
-RANDOM_STATE = 42
-TARGET = "CADD_PHRED"
-
-BASE_NUMERIC = ["AF_ESP", "AF_EXAC", "AF_TGP", "ORIGIN", "STRAND", "LoFtool", "BLOSUM62"]
-CATEGORICAL_FEATURES = ["CHROM", "IMPACT", "Consequence", "BIOTYPE", "CLNVC", "SIFT", "PolyPhen"]
-GENE_COL = "SYMBOL"
-TOP_N_GENES = 30
-
-
-def parse_position_range(value):
-    """'123', '800-802', '?-117' 등을 단일 숫자로 파싱 (범위는 평균)."""
-    if pd.isna(value):
-        return np.nan
-    nums = re.findall(r"\d+", str(value))
-    if not nums:
-        return np.nan
-    nums = [int(n) for n in nums]
-    return float(np.mean(nums))
-
-
-def parse_ratio(value):
-    """'6/12' -> 0.5 형태의 EXON/INTRON 비율 파싱."""
-    if pd.isna(value):
-        return np.nan
-    m = re.match(r"^(\d+)/(\d+)$", str(value))
-    if not m:
-        return np.nan
-    num, denom = int(m.group(1)), int(m.group(2))
-    return num / denom if denom else np.nan
-
-
-def load_base(df):
-    top_genes = df[GENE_COL].value_counts().nlargest(TOP_N_GENES).index
-    df["GENE_GROUP"] = df[GENE_COL].where(df[GENE_COL].isin(top_genes), "Other")
-    return df
-
-
-def build_feature_sets(df):
-    df = load_base(df.copy())
-
-    # --- 엔지니어링 피처 ---
-    for col in ["AF_ESP", "AF_EXAC", "AF_TGP"]:
-        df[f"log_{col}"] = np.log1p(df[col])
-    df["EXON_ratio"] = df["EXON"].apply(parse_ratio)
-    df["INTRON_ratio"] = df["INTRON"].apply(parse_ratio)
-    df["Protein_position_num"] = df["Protein_position"].apply(parse_position_range)
-    df["CDS_position_num"] = df["CDS_position"].apply(parse_position_range)
-    df["cDNA_position_num"] = df["cDNA_position"].apply(parse_position_range)
-
-    engineered_numeric = [
-        "log_AF_ESP", "log_AF_EXAC", "log_AF_TGP",  # AF 로그변환 (원본 대체)
-        "ORIGIN", "STRAND", "LoFtool", "BLOSUM62",
-        "EXON_ratio", "INTRON_ratio",
-        "Protein_position_num", "CDS_position_num", "cDNA_position_num",
-    ]
-    categorical = CATEGORICAL_FEATURES + ["GENE_GROUP"]
-
-    return df, BASE_NUMERIC, engineered_numeric, categorical
-
-
-def build_preprocessor(numeric_features, categorical_features, scale_numeric: bool):
-    numeric_steps = [("imputer", SimpleImputer(strategy="median"))]
-    if scale_numeric:
-        numeric_steps.append(("scaler", StandardScaler()))
-    numeric_pipe = Pipeline(numeric_steps)
-
-    categorical_pipe = Pipeline([
-        ("imputer", SimpleImputer(strategy="constant", fill_value="missing")),
-        ("onehot", OneHotEncoder(handle_unknown="ignore")),
-    ])
-
-    return ColumnTransformer([
-        ("num", numeric_pipe, numeric_features),
-        ("cat", categorical_pipe, categorical_features),
-    ])
 
 
 def rmse_scorer():

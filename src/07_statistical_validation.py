@@ -21,9 +21,9 @@ import pandas as pd
 from scipy import stats
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from model_improvement import DATA_PATH, ROOT, TARGET
+from common import DATA_PATH, ROOT, TARGET
 
-OUT_DIR = ROOT / "outputs" / "stats"
+OUT_DIR = ROOT / "results" / "statistical_validation"
 OUT_DIR.mkdir(parents=True, exist_ok=True)
 
 ALPHA = 0.05

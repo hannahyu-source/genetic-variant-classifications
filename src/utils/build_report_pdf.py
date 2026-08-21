@@ -7,7 +7,7 @@ from pathlib import Path
 
 import markdown
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[2]
 MD_PATH = ROOT / "docs" / "analysis_report.md"
 HTML_PATH = ROOT / "docs" / "_report_build.html"
 PDF_PATH = ROOT / "docs" / "analysis_report.pdf"

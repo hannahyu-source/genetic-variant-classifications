@@ -1,0 +1,11 @@
+pandas>=2.3,<3
+numpy>=2.5,<3
+scikit-learn>=1.9,<2
+xgboost>=3.3,<4
+shap>=0.52,<1
+matplotlib>=3.11,<4
+scipy>=1.18,<2
+markdown>=3.10,<4
+
+# notebooks/portfolio_walkthrough.ipynb only (not used by src/ scripts)
+jupyter>=1.0,<2

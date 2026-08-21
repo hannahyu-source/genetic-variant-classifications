@@ -21,9 +21,9 @@ from sklearn.pipeline import Pipeline
 from xgboost import XGBRegressor
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from model_improvement import DATA_PATH, RANDOM_STATE, ROOT, TARGET, build_feature_sets, build_preprocessor
+from common import DATA_PATH, RANDOM_STATE, ROOT, TARGET, build_feature_sets, build_preprocessor
 
-OUT_DIR = ROOT / "outputs" / "residual_investigation"
+OUT_DIR = ROOT / "results" / "biological_insights" / "residual_investigation"
 OUT_DIR.mkdir(parents=True, exist_ok=True)
 
 BEST_XGB_PARAMS = dict(

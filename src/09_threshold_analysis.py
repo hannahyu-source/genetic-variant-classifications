@@ -25,9 +25,9 @@ from sklearn.pipeline import Pipeline
 from xgboost import XGBClassifier
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from model_improvement import DATA_PATH, RANDOM_STATE, ROOT, build_feature_sets, build_preprocessor
+from common import DATA_PATH, RANDOM_STATE, ROOT, build_feature_sets, build_preprocessor
 
-OUT_DIR = ROOT / "outputs" / "threshold_analysis"
+OUT_DIR = ROOT / "results" / "classification" / "threshold_analysis"
 OUT_DIR.mkdir(parents=True, exist_ok=True)
 
 TARGET = "CLASS"

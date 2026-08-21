@@ -28,9 +28,9 @@ from sklearn.preprocessing import OneHotEncoder, StandardScaler
 from xgboost import XGBClassifier
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from model_improvement import DATA_PATH, RANDOM_STATE, ROOT, build_feature_sets, build_preprocessor
+from common import DATA_PATH, RANDOM_STATE, ROOT, build_feature_sets, build_preprocessor
 
-OUT_DIR = ROOT / "outputs" / "classification"
+OUT_DIR = ROOT / "results" / "classification"
 OUT_DIR.mkdir(parents=True, exist_ok=True)
 
 TARGET = "CLASS"

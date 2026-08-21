@@ -20,12 +20,12 @@ from sklearn.model_selection import train_test_split
 from xgboost import XGBRegressor
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from model_improvement import DATA_PATH, RANDOM_STATE, ROOT, TARGET, build_feature_sets, build_preprocessor
+from common import DATA_PATH, RANDOM_STATE, ROOT, TARGET, build_feature_sets, build_preprocessor
 
-OUT_DIR = ROOT / "outputs" / "shap"
+OUT_DIR = ROOT / "results" / "explainability" / "shap"
 OUT_DIR.mkdir(parents=True, exist_ok=True)
 
-# scripts/model_improvement.py Step 3 튜닝 결과 (outputs/model_improvement/results.json)
+# src/04_model_improvement.py Step 3 튜닝 결과 (results/regression/model_improvement/results.json)
 BEST_XGB_PARAMS = dict(
     subsample=1.0,
     reg_lambda=2,

@@ -9,8 +9,8 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 
 ROOT = Path(__file__).resolve().parents[1]
-DATA_PATH = ROOT / "data" / "clinvar_conflicting.csv"
-OUT_DIR = ROOT / "data"
+DATA_PATH = ROOT / "data" / "raw" / "clinvar_conflicting.csv"
+OUT_DIR = ROOT / "data" / "processed"
 
 RANDOM_STATE = 42
 TEST_SIZE = 0.2

@@ -1,5 +1,7 @@
 # 작업 로그
 
+> **참고**: 아래 1~22번 항목은 `scripts/`·`outputs/`·`data/clinvar_conflicting.csv`·`data/train.csv`·`data/test.csv` 구조였던 당시 그대로의 기록이다. 23번 항목(포트폴리오 재구조화)에서 `scripts/`→`src/`, `outputs/`→`results/`, `data/clinvar_conflicting.csv`→`data/raw/clinvar_conflicting.csv`, `data/train.csv`/`data/test.csv`→`data/processed/train.csv`/`test.csv`로 이동했다. 현재 경로 기준 안내는 [`workflow.md`](workflow.md) 참고.
+
 ## 2026-08-21
 
 ### 1. 프로젝트 구조 세팅
@@ -139,6 +141,16 @@
 - 원인 4(실재하는 한계): 개별 최대 오차 사례는 SIFT/PolyPhen이 "무해" 판정해도 실제 CADD는 높은 경우에 집중(BRCA1/2, PMM2, BUB1B 등) — SIFT/PolyPhen 의존도가 이런 사례에서 예측을 그르침
 - `docs/analysis_report.md`(10-1-A 신설, 결론 갱신), `README.md`, `docs/workflow.md`에 반영, PDF 재생성
 
+### 23. 포트폴리오 재구조화
+- `scripts/` → `src/`(01~12번 파이프라인 순서 부여) + `src/utils/`(`build_report_pdf.py`), `outputs/` → `results/`(연구 질문 단위: `eda/regression/explainability/generalization/classification/statistical_validation/biological_insights`), `data/clinvar_conflicting.csv` → `data/raw/`, `data/train.csv`/`test.csv` → `data/processed/`로 재배치 (모두 `git mv` 사용)
+- `docs/Problem-definition.md` → `docs/problem_definition.md`, `docs/work_log.md` → `docs/development_log.md`로 이름 변경
+- 숫자로 시작하는 스크립트 파일명은 `import` 대상이 될 수 없어(`import 04_model_improvement` 불가) `05_shap_interpretation.py`~`12_advanced_visualization.py`가 기존에 `model_improvement.py`에서 가져오던 공통 로직(경로 상수, `build_feature_sets`, `build_preprocessor`, 위치 파싱 함수)을 `src/common.py`로 분리 — `03_baseline_models.py`의 중복된 전처리기 정의도 함께 `common.py` 재사용으로 정리
+- `01_eda.py`/`02_split_data.py`/`03_baseline_models.py` 재실행으로 새 경로에서 파이프라인이 정상 동작하고 기존 커밋된 지표와 소수점 단위까지 일치함을 확인(RandomForest 병렬처리로 인한 마지막 자리 부동소수점 차이 1건은 원본 값으로 복원)
+- `docs/analysis_report.md` 내 모든 이미지·경로 참조(`outputs/` → `results/`, `scripts/` → `src/`)를 일괄 갱신하고 25개 이미지 링크가 모두 실제 파일로 해석되는지 검증
+- 신규 문서 작성: `docs/methodology.md`, `docs/model_validation.md`, `docs/biological_interpretation.md`, `docs/variant_case_studies.md`(실제 변이 4건, 재학습한 모델 예측값 포함), `docs/limitations.md`, `docs/ai_assisted_workflow.md`, `data/README.md`
+- `requirements.txt` 신규 작성(실제 import 기준: pandas/numpy/scikit-learn/xgboost/shap/matplotlib/scipy/markdown), `README.md` 포트폴리오 랜딩페이지로 전면 재작성
+- CADD_PHRED/CLASS 관련 표현을 "병원성 점수/분류"에서 "유해성 우선순위화 점수/ClinVar 해석 상충 예측"으로 전 문서에 걸쳐 정정 (ACMG/AMP 병원성 분류와의 혼동 방지)
+
 ## 진행 중 / 다음에 할 일
-- [ ] 잔차 이상 패턴 규명 결과 및 최신 PDF 커밋·GitHub 푸시
+- [ ] 재구조화 결과 커밋·GitHub 푸시
 - [ ] (선택) CLASS 예측에 특화된 추가 특성(검사기관 수, 질병 카테고리 등) 발굴, 분류기 확률 보정(Platt scaling), SIFT/PolyPhen 오분류 사례의 공통 보존성 특성 발굴

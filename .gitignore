@@ -1,3 +1,5 @@
 __pycache__/
 *.pyc
 docs/_report_build.html
+.venv/
+.ipynb_checkpoints/

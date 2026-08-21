@@ -11,8 +11,8 @@ import numpy as np
 import pandas as pd
 
 ROOT = Path(__file__).resolve().parents[1]
-DATA_PATH = ROOT / "data" / "clinvar_conflicting.csv"
-OUT_DIR = ROOT / "outputs" / "eda"
+DATA_PATH = ROOT / "data" / "raw" / "clinvar_conflicting.csv"
+OUT_DIR = ROOT / "results" / "eda"
 OUT_DIR.mkdir(parents=True, exist_ok=True)
 DOCS_DIR = ROOT / "docs"
 DOCS_DIR.mkdir(exist_ok=True)

@@ -5,6 +5,7 @@ ClinVar Conflicting Classifications - CADD_PHRED 회귀 예측 파이프라인
 평가: RMSE, MAE, R2
 """
 import json
+import sys
 from pathlib import Path
 
 import matplotlib
@@ -12,40 +13,26 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from sklearn.compose import ColumnTransformer
 from sklearn.ensemble import RandomForestRegressor
-from sklearn.impute import SimpleImputer
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import OneHotEncoder, StandardScaler
 from xgboost import XGBRegressor
 
-ROOT = Path(__file__).resolve().parents[1]
-DATA_PATH = ROOT / "data" / "clinvar_conflicting.csv"
-OUT_DIR = ROOT / "outputs"
-OUT_DIR.mkdir(exist_ok=True)
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from common import BASE_NUMERIC, CATEGORICAL_FEATURES, DATA_PATH, RANDOM_STATE, ROOT, TARGET, build_preprocessor, load_base
 
-RANDOM_STATE = 42
+OUT_DIR = ROOT / "results" / "regression"
+OUT_DIR.mkdir(parents=True, exist_ok=True)
 
-TARGET = "CADD_PHRED"
-
-NUMERIC_FEATURES = ["AF_ESP", "AF_EXAC", "AF_TGP", "ORIGIN", "STRAND", "LoFtool", "BLOSUM62"]
-CATEGORICAL_FEATURES = ["CHROM", "IMPACT", "Consequence", "BIOTYPE", "CLNVC", "SIFT", "PolyPhen"]
-GENE_COL = "SYMBOL"
-TOP_N_GENES = 30  # 상위 N개 유전자만 개별 카테고리로, 나머지는 'Other'
+NUMERIC_FEATURES = BASE_NUMERIC  # 이 단계는 원본(비가공) 피처만 사용 — 엔지니어링 피처는 04_model_improvement.py부터 도입
 
 
 def load_and_prepare():
     df = pd.read_csv(DATA_PATH, low_memory=False)
-
-    # 타겟 결측 제거
     df = df.dropna(subset=[TARGET]).copy()
-
-    # 유전자 고빈도 상위 N개만 유지, 나머지는 'Other'
-    top_genes = df[GENE_COL].value_counts().nlargest(TOP_N_GENES).index
-    df["GENE_GROUP"] = df[GENE_COL].where(df[GENE_COL].isin(top_genes), "Other")
+    df = load_base(df)
 
     cat_features = CATEGORICAL_FEATURES + ["GENE_GROUP"]
     feature_cols = NUMERIC_FEATURES + cat_features
@@ -54,23 +41,6 @@ def load_and_prepare():
     y = df[TARGET].copy()
 
     return X, y, NUMERIC_FEATURES, cat_features
-
-
-def build_preprocessor(numeric_features, categorical_features, scale_numeric: bool):
-    numeric_steps = [("imputer", SimpleImputer(strategy="median"))]
-    if scale_numeric:
-        numeric_steps.append(("scaler", StandardScaler()))
-    numeric_pipe = Pipeline(numeric_steps)
-
-    categorical_pipe = Pipeline([
-        ("imputer", SimpleImputer(strategy="constant", fill_value="missing")),
-        ("onehot", OneHotEncoder(handle_unknown="ignore")),
-    ])
-
-    return ColumnTransformer([
-        ("num", numeric_pipe, numeric_features),
-        ("cat", categorical_pipe, categorical_features),
-    ])
 
 
 def evaluate(y_true, y_pred):

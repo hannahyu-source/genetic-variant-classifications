@@ -24,12 +24,12 @@ from sklearn.pipeline import Pipeline
 from xgboost import XGBRegressor
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from model_improvement import DATA_PATH, RANDOM_STATE, ROOT, TARGET, build_feature_sets, build_preprocessor
+from common import DATA_PATH, RANDOM_STATE, ROOT, TARGET, build_feature_sets, build_preprocessor
 
-OUT_DIR = ROOT / "outputs" / "gene_group_validation"
+OUT_DIR = ROOT / "results" / "generalization"
 OUT_DIR.mkdir(parents=True, exist_ok=True)
 
-# outputs/model_improvement/results.json 의 XGBoost 튜닝 최적 파라미터
+# results/regression/model_improvement/results.json 의 XGBoost 튜닝 최적 파라미터
 BEST_XGB_PARAMS = dict(
     subsample=1.0, reg_lambda=2, reg_alpha=0.1, n_estimators=600,
     min_child_weight=3, max_depth=7, learning_rate=0.05, colsample_bytree=0.6,

@@ -28,12 +28,17 @@ from sklearn.pipeline import Pipeline
 from xgboost import XGBClassifier, XGBRegressor
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from model_improvement import DATA_PATH, RANDOM_STATE, ROOT, TARGET, build_feature_sets, build_preprocessor
+from common import DATA_PATH, RANDOM_STATE, ROOT, TARGET, build_feature_sets, build_preprocessor
 
-OUT_DIR = ROOT / "outputs" / "advanced_viz"
-OUT_DIR.mkdir(parents=True, exist_ok=True)
+# 각 플롯은 다루는 연구 질문에 따라 서로 다른 results/ 하위 폴더에 저장한다.
+OUT_DIR_REGRESSION = ROOT / "results" / "regression"
+OUT_DIR_EXPLAIN = ROOT / "results" / "explainability"
+OUT_DIR_CLASSIFICATION = ROOT / "results" / "classification"
+OUT_DIR_BIO = ROOT / "results" / "biological_insights"
+for _d in (OUT_DIR_REGRESSION, OUT_DIR_EXPLAIN, OUT_DIR_CLASSIFICATION, OUT_DIR_BIO):
+    _d.mkdir(parents=True, exist_ok=True)
 
-# outputs/model_improvement/results.json 의 XGBoost 튜닝 최적 파라미터
+# results/regression/model_improvement/results.json 의 XGBoost 튜닝 최적 파라미터
 BEST_XGB_REG_PARAMS = dict(
     subsample=1.0, reg_lambda=2, reg_alpha=0.1, n_estimators=600,
     min_child_weight=3, max_depth=7, learning_rate=0.05, colsample_bytree=0.6,
@@ -85,7 +90,7 @@ def main():
 
     fig.suptitle("회귀 진단: 튜닝된 XGBoost (R²=0.708)")
     fig.tight_layout()
-    fig.savefig(OUT_DIR / "01_residual_plot.png", dpi=150)
+    fig.savefig(OUT_DIR_REGRESSION / "01_residual_plot.png", dpi=150)
     plt.close(fig)
 
     # ===== 2. PCA / t-SNE 2D 임베딩 =====
@@ -145,7 +150,7 @@ def main():
 
     fig.suptitle("특성 공간 2D 임베딩")
     fig.tight_layout()
-    fig.savefig(OUT_DIR / "02_pca_tsne_embedding.png", dpi=150)
+    fig.savefig(OUT_DIR_EXPLAIN / "02_pca_tsne_embedding.png", dpi=150)
     plt.close(fig)
 
     # ===== 3. 분류기 보정 곡선 =====
@@ -182,7 +187,7 @@ def main():
 
     fig.suptitle("분류기 확률 보정 상태")
     fig.tight_layout()
-    fig.savefig(OUT_DIR / "03_calibration_curve.png", dpi=150)
+    fig.savefig(OUT_DIR_CLASSIFICATION / "03_calibration_curve.png", dpi=150)
     plt.close(fig)
 
     # ===== 4. 유전자 x IMPACT 히트맵 =====
@@ -216,7 +221,7 @@ def main():
 
     fig.suptitle(f"상위 {len(top_genes)}개 유전자 x IMPACT")
     fig.tight_layout()
-    fig.savefig(OUT_DIR / "04_gene_impact_heatmap.png", dpi=150)
+    fig.savefig(OUT_DIR_BIO / "04_gene_impact_heatmap.png", dpi=150)
     plt.close(fig)
 
     # ===== 5. 2D Partial Dependence (상호작용) =====
@@ -233,10 +238,10 @@ def main():
     )
     ax.set_title("2D Partial Dependence: BLOSUM62 x log_AF_TGP -> CADD_PHRED 예측")
     fig.tight_layout()
-    fig.savefig(OUT_DIR / "05_pdp_interaction.png", dpi=150)
+    fig.savefig(OUT_DIR_EXPLAIN / "05_pdp_interaction.png", dpi=150)
     plt.close(fig)
 
-    print(f"\n결과 저장 위치: {OUT_DIR}")
+    print(f"\n결과 저장 위치: {OUT_DIR_REGRESSION}, {OUT_DIR_EXPLAIN}, {OUT_DIR_CLASSIFICATION}, {OUT_DIR_BIO}")
 
 
 if __name__ == "__main__":
