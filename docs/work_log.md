@@ -73,6 +73,23 @@
 - 피처 엔지니어링(로그변환, 위치 파싱)의 개선폭(+0.021)이 하이퍼파라미터 튜닝의 개선폭(+0.004)보다 큼을 확인
 - `docs/analysis_report.md`에 결과 반영 완료
 
+### 13. 모델 개선 결과 커밋·푸시
+- `README.md`, `docs/analysis_report.md`, `docs/work_log.md` 업데이트 후 `outputs/model_improvement/`와 함께 커밋·푸시 완료
+
+### 14. SHAP 모델 해석
+- `shap` 패키지 설치 후 `scripts/shap_interpretation.py` 작성·실행
+- 튜닝된 XGBoost(`model_improvement.py` Step 3 best params)를 동일 엔지니어링 피처로 재학습 후 `TreeExplainer`로 SHAP 값 계산
+- 원-핫 인코딩된 컬럼을 원본 변수 단위로 집계하는 로직 추가(`build_feature_groups`) — 개별 카테고리별이 아니라 변수 단위로 해석 가능하게 함
+- 첫 실행 시 플롯 제목의 한글이 `DejaVu Sans` 폰트에서 깨짐(tofu box) → `plt.rcParams["font.family"] = "Malgun Gothic"` 추가 후 재실행
+- 결과: `IMPACT > SIFT > PolyPhen > Consequence` 순으로 중요 — SIFT·PolyPhen이 CADD와 유사한 개념을 측정하는 도구라 정보 중복 가능성 확인
+
+### 15. 분류(CLASS)로 확장
+- `scripts/classify_conflicting.py` 작성·실행: LogisticRegression/RandomForest/XGBoost로 `CLASS`(상충 여부, 0:74.8%/1:25.2%) 예측
+- 회귀와 동일 피처 + `CADD_PHRED`를 특성으로 추가(타겟이 다르므로 누수 아님), `class_weight`/`scale_pos_weight`로 불균형 보정
+- 결과: XGBoost 최우수 (Accuracy=0.717, F1=0.564, ROC-AUC=0.791) — 회귀(R²≈0.71)보다 어려운 문제로 확인
+- XGBoost feature importance 상위권에 `IMPACT_HIGH`, 대립유전자 빈도, 그리고 BRCA1/2·LDLR·MSH6 등 잘 알려진 질병 유전자들이 랭크됨
+- `docs/analysis_report.md`(7·8·9장), `README.md`에 SHAP·분류 결과 반영
+
 ## 진행 중 / 다음에 할 일
-- [ ] 모델 개선 결과 커밋 및 GitHub 푸시
-- [ ] (선택) SHAP 해석, `CLASS` 분류 모델, 통계적 가설검정 등 추가 분석 방향
+- [ ] SHAP·분류 결과 커밋 및 GitHub 푸시
+- [ ] (선택) SIFT/PolyPhen 제외 ablation, 통계적 가설검정, 분류 임계값 조정을 통한 Precision-Recall 트레이드오프 분석

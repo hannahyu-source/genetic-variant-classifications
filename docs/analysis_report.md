@@ -75,7 +75,55 @@
 - 선형회귀는 피처 엔지니어링으로 거의 개선되지 않음(0.651→0.651) — 로그변환·위치 정보가 비선형적으로 작용하기 때문에 트리 기반 모델에서만 효과가 나타남.
 - 5-fold CV 표준편차가 ±0.004~0.006(R² 기준)로 작아 결과가 안정적임을 확인 (`outputs/model_improvement/results.json`).
 
-## 7. 결론 및 다음 단계
+## 7. 모델 해석 (SHAP)
+`scripts/shap_interpretation.py` 실행 결과 — 튜닝된 XGBoost(R²=0.708)를 SHAP `TreeExplainer`로 해석 (`outputs/shap/`)
+
+**변수 단위 중요도** (원-핫 인코딩된 컬럼들을 원본 변수 기준으로 합산, Top 10)
+
+| 순위 | 변수 | mean(\|SHAP\|) |
+|---|---|---|
+| 1 | IMPACT | 4.089 |
+| 2 | SIFT | 3.046 |
+| 3 | PolyPhen | 2.112 |
+| 4 | Consequence | 1.680 |
+| 5 | CHROM | 0.838 |
+| 6 | GENE_GROUP | 0.615 |
+| 7 | BLOSUM62 | 0.557 |
+| 8 | EXON_ratio | 0.524 |
+| 9 | LoFtool | 0.424 |
+| 10 | log_AF_TGP | 0.400 |
+
+![변수 단위 중요도](../outputs/shap/01_importance_by_variable.png)
+![SHAP Beeswarm](../outputs/shap/02_beeswarm_summary.png)
+![Dependence Plot](../outputs/shap/04_dependence_top6.png)
+
+**해석**:
+- 상위 4개(IMPACT, SIFT, PolyPhen, Consequence)가 모두 변이의 기능적 영향/유해성을 나타내는 변수. 특히 **SIFT·PolyPhen이 2·3위로 비중이 매우 큰데**, 이 둘은 CADD와 별개의 도구지만 같은 개념(단백질 기능 손상)을 측정하므로 모델이 크게 의존하고 있다 — 3장 EDA에서 우려했던 "정보 중복"이 SHAP에서도 확인됨. 두 변수를 제외하고 재학습하면 모델이 얼마나 더 "독립적인" 정보에 의존하는지 확인 가능(향후 ablation 과제).
+- `EXON_ratio`(피처 엔지니어링으로 추가한 변수)가 9위에 랭크 — 6장에서 확인한 피처 엔지니어링의 효과를 변수 단위로도 재확인.
+- 대립유전자 빈도(`log_AF_TGP` 등)는 하위권이지만 0보다 뚜렷이 큰 기여 — 흔한 변이일수록 병원성이 낮다는 EDA의 상관관계 방향과 일치.
+
+## 8. 분류로 확장: CLASS(임상 해석 상충 여부) 예측
+`scripts/classify_conflicting.py` 실행 결과 (`outputs/classification/`) — 원본 데이터셋의 취지인 `CLASS`(0: 비상충 74.8%, 1: 상충 25.2%)를 별도 분류 문제로 예측. 특성은 회귀와 동일 + `CADD_PHRED`를 특성으로 추가(타겟이 CLASS이므로 누수 아님). 클래스 불균형은 `class_weight="balanced"`(LR/RF), `scale_pos_weight`(XGB)로 보정.
+
+| 모델 | Accuracy | Precision | Recall | F1 | ROC-AUC |
+|---|---|---|---|---|---|
+| LogisticRegression | 0.560 | 0.348 | 0.854 | 0.495 | 0.696 |
+| RandomForest | 0.714 | 0.457 | 0.712 | 0.557 | 0.786 |
+| **XGBoost** | **0.717** | **0.461** | **0.724** | **0.564** | **0.791** |
+
+![분류 모델 비교](../outputs/classification/classification_comparison.png)
+![혼동행렬](../outputs/classification/confusion_matrices.png)
+![ROC Curve](../outputs/classification/roc_curves.png)
+
+**해석**:
+- XGBoost가 ROC-AUC 0.791로 최우수하나, 회귀(R²≈0.71)만큼 깔끔하지 않다 — "상충 여부"는 검사기관 간 판단 차이라는 인간적 요인이 섞여 있어 변이 특성만으로는 예측이 더 어려운 문제.
+- Accuracy(0.717)는 오해의 소지가 있다 — 전부 0(비상충)으로 찍어도 Accuracy 0.748이 나오는 불균형 데이터이므로 **ROC-AUC·F1이 더 신뢰할 만한 지표**.
+- LogisticRegression은 `class_weight="balanced"`로 인해 Recall(0.854)은 높지만 Precision(0.348)이 낮아 상충을 과도하게 예측하는 경향. 트리 모델(RF/XGB)이 Precision·Recall 균형이 더 좋음.
+- XGBoost feature importance 상위권: `IMPACT_HIGH`, 대립유전자 빈도(`log_AF_TGP`, `log_AF_EXAC`), 특정 유전자(`LDLR`, `RAD50`, `APC`, `MYBPC3`, `MSH6`, `BRCA1`, `BRCA2`, `NF1`) — 잘 알려진 질병 유전자일수록 여러 검사기관이 제출·검토하는 빈도가 높아 해석 상충 가능성도 높아지는 것으로 해석됨 (`outputs/classification/feature_importance_XGBoost.png`).
+
+## 9. 결론 및 다음 단계
 - 유전 변이의 대립유전자 빈도·변이 위치·유전자·기능적 영향 정보로 `CADD_PHRED`의 상당 부분(R²≈0.71)을 설명할 수 있음을 확인했다.
 - 피처 엔지니어링(로그변환, 위치 정보 수치화)이 하이퍼파라미터 튜닝보다 더 큰 성능 개선을 가져왔다 — 향후 유사 작업에서는 튜닝보다 도메인 지식 기반 피처 엔지니어링을 우선하는 것이 효율적일 수 있다.
-- 추후 확장 가능한 분석 방향: SHAP 기반 모델 해석, 원본 분류 타겟(`CLASS`) 예측 모델 구축, Consequence/CLASS 그룹 간 통계적 가설검정.
+- SHAP 해석 결과, 모델은 SIFT·PolyPhen 같은 기존 유해성 예측 도구에 크게 의존한다 — 완전히 독립적인 신규 정보로서의 기여는 이보다 작을 수 있음에 유의.
+- `CLASS`(상충 여부) 분류로 확장한 결과 ROC-AUC 0.791로 회귀보다는 어려운 문제였으며, 특정 질병 유전자(BRCA1/2 등)가 상충 예측에 중요하다는 것을 확인했다.
+- 추후 확장 가능한 분석 방향: SIFT/PolyPhen 제외 ablation 실험, Consequence/CLASS 그룹 간 통계적 가설검정, 분류 모델의 임계값(threshold) 조정을 통한 Precision-Recall 트레이드오프 분석.
