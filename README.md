@@ -168,7 +168,7 @@ notebooks/  포트폴리오 워크스루 노트북
 
 ```bash
 git clone <repository>
-cd genetic-variant-classifications
+cd genomic-variant-ML-analysis
 
 python -m venv .venv
 # Windows: .venv\Scripts\activate
